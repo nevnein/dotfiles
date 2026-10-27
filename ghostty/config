@@ -1,0 +1,52 @@
+# Ghostty
+# Reference: https://ghostty.org/docs/config/reference
+
+# ---- Appearance -------------------------------------------------
+font-family = "Monaspace Krypton NF"
+font-feature = "calt"
+font-size = 13
+
+# Night Owl palette, built into Ghostty
+theme = Night Owl
+
+cursor-style = block
+cursor-style-blink = true
+
+background-opacity = 1
+unfocused-split-opacity = 0.7
+
+window-padding-x = 8
+window-padding-y = 8
+window-padding-balance = true
+
+# ---- Behavior ---------------------------------------------------
+mouse-hide-while-typing = true
+copy-on-select = clipboard
+desktop-notifications = true
+confirm-close-surface = false
+window-save-state = always
+
+# Option acts as Alt so Alt+arrow and Alt+F reach the shell.
+# Accented characters (à, è, é) are not typed with Option.
+macos-option-as-alt = true
+
+# ---- Shell integration ------------------------------------------
+shell-integration = zsh
+shell-integration-features = cursor,title
+
+# ---- Tabs and splits ------------------------------------------------
+# cmd+T      new tab
+# cmd+D      split right
+# cmd+shift+D split down
+# cmd+opt+arrows  move between splits
+# cmd+shift+enter  zoom current split
+keybind = super+d=new_split:right
+keybind = super+shift+d=new_split:down
+keybind = super+alt+left=goto_split:left
+keybind = super+alt+right=goto_split:right
+keybind = super+alt+up=goto_split:up
+keybind = super+alt+down=goto_split:down
+keybind = cmd+shift+o=toggle_tab_overview
+
+# Drop-down "quick terminal" from anywhere (Ctrl+`)
+keybind = global:ctrl+grave_accent=toggle_quick_terminal
