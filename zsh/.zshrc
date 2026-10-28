@@ -1,7 +1,9 @@
-eval "$(starship init zsh)"
+if command -v starship >/dev/null 2>&1; then
+  eval "$(starship init zsh)"
+fi
 
 # fnm
-FNM_PATH="/opt/homebrew/opt/fnm/bin"
+FNM_PATH="$(brew --prefix)/opt/fnm/bin"
 if [ -d "$FNM_PATH" ]; then
   eval "$(fnm env --shell zsh)"
 fi
@@ -9,15 +11,12 @@ fi
 # Allows Node to use the system certificates
 export NODE_USE_SYSTEM_CA=1
 
-# opencode
-export PATH=/Users/adam.dimario/.opencode/bin:$PATH
-
 # ============================================================
 # Terminal quality of life
 # ============================================================
 
 # History: larger, shared across tabs, skip duplicates and leading-space commands
-HISTFILE="$HOME/.zsh_history"
+export HISTFILE="$HOME/.zsh_history"
 HISTSIZE=50000
 SAVEHIST=50000
 setopt EXTENDED_HISTORY
@@ -29,9 +28,10 @@ setopt AUTO_CD
 setopt INTERACTIVE_COMMENTS
 
 # Completion: menu under the cursor, case-insensitive, extra completions from brew
-FPATH="$(brew --prefix)/share/zsh-completions:$FPATH"
+# (Homebrew's zsh completions are added to $FPATH automatically via `brew shellenv`,
+# so no manual FPATH prepend is needed here)
 autoload -Uz compinit
-compinit -C
+compinit
 
 # List ambiguous matches instead of only beeping; menu on second Tab
 setopt AUTO_LIST LIST_AMBIGUOUS AUTO_MENU

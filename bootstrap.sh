@@ -1,7 +1,7 @@
 #!/bin/bash
 # Idempotent dotfiles bootstrap for Homebrew, zsh, and Ghostty.
 # Safe to run more than once: existing files are backed up, correct
-# symlinks are left alone, and Brewfile installs are declarative.
+# copies are left alone, and Brewfile installs are declarative.
 
 set -euo pipefail
 
@@ -9,13 +9,15 @@ DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "[INFO] Dotfiles directory: $DOTFILES_DIR"
 
-if ! command -v brew >/dev/null 2>&1 && [[ ! -x /opt/homebrew/bin/brew ]]; then
-  echo "[ACTION] Installing Homebrew for Apple Silicon..."
+if ! command -v brew >/dev/null 2>&1 && [[ ! -x /opt/homebrew/bin/brew ]] && [[ ! -x /usr/local/bin/brew ]]; then
+  echo "[ACTION] Installing Homebrew..."
   NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
 if [[ -x /opt/homebrew/bin/brew ]]; then
   eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+  eval "$(/usr/local/bin/brew shellenv)"
 elif command -v brew >/dev/null 2>&1; then
   eval "$(brew shellenv)"
 else
@@ -26,13 +28,11 @@ fi
 echo "[ACTION] Applying Brewfile..."
 brew bundle --file="$DOTFILES_DIR/Brewfile"
 
-# link_file SOURCE DEST
-# Point DEST at SOURCE. Parent directories are created. A destination that
-# already points at SOURCE is left unchanged. Any other file, directory, or
-# symlink (including a broken one) is moved aside before linking.
-link_file() {
-  local src="$1"
-  local dest="$2"
+# copy_file SOURCE DEST
+# Copy SOURCE to DEST. Parent directories are created. An identical
+# destination is left untouched; anything else is moved aside before copying.
+copy_file() {
+  local src="$1" dest="$2"
 
   if [[ ! -e "$src" ]]; then
     echo "[ERROR] Source missing: $src" >&2
@@ -41,11 +41,9 @@ link_file() {
 
   mkdir -p "$(dirname "$dest")"
 
-  if [[ -L "$dest" && -e "$dest" ]]; then
-    if [[ "$(realpath "$dest")" == "$(realpath "$src")" ]]; then
-      echo "[INFO] Already linked: $dest -> $src"
-      return 0
-    fi
+  if [[ -f "$dest" && ! -L "$dest" ]] && cmp -s "$src" "$dest"; then
+    echo "[INFO] Already up to date: $dest"
+    return 0
   fi
 
   if [[ -e "$dest" || -L "$dest" ]]; then
@@ -61,12 +59,12 @@ link_file() {
     echo "[ACTION] Backed up $dest -> $backup_path"
   fi
 
-  ln -s "$src" "$dest"
-  echo "[ACTION] Linked $dest -> $src"
+  cp "$src" "$dest"
+  echo "[ACTION] Copied $dest <- $src"
 }
 
-link_file "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
-link_file "$DOTFILES_DIR/ghostty/config" "$HOME/.config/ghostty/config"
+copy_file "$DOTFILES_DIR/zsh/.zshrc" "$HOME/.zshrc"
+copy_file "$DOTFILES_DIR/ghostty/config" "$HOME/.config/ghostty/config"
 
 chmod +x "$DOTFILES_DIR/bootstrap.sh"
 
